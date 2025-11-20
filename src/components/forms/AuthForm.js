@@ -4,23 +4,26 @@ import { useState } from 'react'
 import { useForm } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
-import { loginSchema } from '@/lib/validations'
+import { loginSchema, registerSchema } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
 
-export default function LoginForm() {
+export default function AuthForm({ mode = 'login' }) {
   const router = useRouter()
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
+
+  const isLogin = mode === 'login'
+  const schema = isLogin ? loginSchema : registerSchema
 
   const {
     register,
     handleSubmit,
     formState: { errors },
   } = useForm({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(schema),
   })
 
   const onSubmit = async (data) => {
@@ -34,20 +37,23 @@ export default function LoginForm() {
       // Simulate API call
       await new Promise(resolve => setTimeout(resolve, 1000))
 
-      // Mock successful login
+      // Mock successful authentication
       const mockUser = {
         id: '1',
         email: data.email,
-        loggedInAt: new Date().toISOString(),
+        [isLogin ? 'loggedInAt' : 'createdAt']: new Date().toISOString(),
       }
 
       localStorage.setItem('user', JSON.stringify(mockUser))
       localStorage.setItem('isAuthenticated', 'true')
 
+      // Dispatch auth change event
+      window.dispatchEvent(new Event('authChange'))
+
       // Redirect to dashboard
       router.push('/dashboard')
     } catch (err) {
-      setError('Login failed. Please try again.')
+      setError(`${isLogin ? 'Login' : 'Registration'} failed. Please try again.`)
     } finally {
       setIsLoading(false)
     }
@@ -82,14 +88,36 @@ export default function LoginForm() {
         <Input
           id="password"
           type="password"
-          placeholder="Enter your password"
+          placeholder={isLogin ? 'Enter your password' : 'Create a strong password'}
           {...register('password')}
           aria-invalid={errors.password ? 'true' : 'false'}
         />
         {errors.password && (
           <p className="text-sm text-red-600">{errors.password.message}</p>
         )}
+        {!isLogin && (
+          <p className="text-xs text-gray-500">
+            Must be at least 6 characters with uppercase, lowercase, and number
+          </p>
+        )}
       </div>
+
+      {/* Confirm Password Field (Register only) */}
+      {!isLogin && (
+        <div className="space-y-2">
+          <Label htmlFor="confirmPassword">Confirm Password</Label>
+          <Input
+            id="confirmPassword"
+            type="password"
+            placeholder="Re-enter your password"
+            {...register('confirmPassword')}
+            aria-invalid={errors.confirmPassword ? 'true' : 'false'}
+          />
+          {errors.confirmPassword && (
+            <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
+          )}
+        </div>
+      )}
 
       {/* Submit Button */}
       <Button
@@ -97,13 +125,24 @@ export default function LoginForm() {
         className="w-full"
         disabled={isLoading}
       >
-        {isLoading ? 'Logging in...' : 'Login'}
+        {isLoading
+          ? (isLogin ? 'Logging in...' : 'Creating Account...')
+          : (isLogin ? 'Login' : 'Create Account')
+        }
       </Button>
 
       {/* Info Message */}
-      <p className="text-sm text-gray-600 text-center">
-        This is a demo login. Any email/password will work for testing.
-      </p>
+      {isLogin ? (
+        <p className="text-sm text-gray-600 text-center">
+          This is a demo login. Any email/password will work for testing.
+        </p>
+      ) : (
+        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
+          <p className="text-sm text-blue-800">
+            This is a demo registration. Your data will be stored locally for testing purposes only.
+          </p>
+        </div>
+      )}
     </form>
   )
 }

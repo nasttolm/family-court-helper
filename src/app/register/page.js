@@ -1,5 +1,5 @@
 import Link from 'next/link'
-import RegisterForm from '@/components/RegisterForm'
+import AuthForm from '@/components/forms/AuthForm'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 
 export const metadata = {
@@ -28,7 +28,7 @@ export default function RegisterPage() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <RegisterForm />
+            <AuthForm mode="register" />
 
             <div className="mt-6 text-center">
               <p className="text-sm text-gray-600">

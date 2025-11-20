@@ -1,14 +1,61 @@
 'use client'
 
 import Link from 'next/link'
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 
 export default function Header() {
+  const router = useRouter()
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
+  const [isLoggedIn, setIsLoggedIn] = useState(false)
+  const [userEmail, setUserEmail] = useState('')
 
-  // Mock user state - will be replaced with real auth later
-  const isLoggedIn = false
+  useEffect(() => {
+    // Check authentication status
+    const checkAuth = () => {
+      const isAuthenticated = localStorage.getItem('isAuthenticated')
+      const userData = localStorage.getItem('user')
+
+      if (isAuthenticated === 'true' && userData) {
+        setIsLoggedIn(true)
+        const user = JSON.parse(userData)
+        setUserEmail(user.email)
+      } else {
+        setIsLoggedIn(false)
+        setUserEmail('')
+      }
+    }
+
+    checkAuth()
+
+    // Listen for storage changes (logout in another tab)
+    window.addEventListener('storage', checkAuth)
+
+    // Custom event for login/logout
+    window.addEventListener('authChange', checkAuth)
+
+    return () => {
+      window.removeEventListener('storage', checkAuth)
+      window.removeEventListener('authChange', checkAuth)
+    }
+  }, [])
+
+  const handleLogout = () => {
+    // Clear authentication data
+    localStorage.removeItem('isAuthenticated')
+    localStorage.removeItem('user')
+
+    // Dispatch custom event for other components
+    window.dispatchEvent(new Event('authChange'))
+
+    setIsLoggedIn(false)
+    setUserEmail('')
+    setMobileMenuOpen(false)
+
+    // Redirect to home
+    router.push('/')
+  }
 
   return (
     <header className="border-b">
@@ -32,7 +79,7 @@ export default function Header() {
                 <Link href="/dashboard" className="text-gray-700 hover:text-gray-900">
                   Dashboard
                 </Link>
-                <Button variant="outline" size="sm">
+                <Button variant="outline" size="sm" onClick={handleLogout}>
                   Logout
                 </Button>
               </>
@@ -94,7 +141,7 @@ export default function Header() {
                   >
                     Dashboard
                   </Link>
-                  <Button variant="outline" size="sm" className="w-full">
+                  <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
                     Logout
                   </Button>
                 </>
