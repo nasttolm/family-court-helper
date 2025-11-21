@@ -4,6 +4,7 @@ import Link from 'next/link'
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
+import { supabase } from '@/lib/supabase/client'
 
 export default function Header() {
   const router = useRouter()
@@ -13,54 +14,44 @@ export default function Header() {
   const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
-    // Check authentication status
-    const checkAuth = () => {
-      const isAuthenticated = localStorage.getItem('isAuthenticated')
-      const userData = localStorage.getItem('user')
-      const adminStatus = localStorage.getItem('isAdmin')
-
-      if (isAuthenticated === 'true' && userData) {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
         setIsLoggedIn(true)
-        const user = JSON.parse(userData)
-        setUserEmail(user.email)
-        setIsAdmin(adminStatus === 'true')
+        setUserEmail(session.user.email)
+        // Check if user has admin role in metadata
+        setIsAdmin(session.user.user_metadata?.role === 'admin')
+      }
+    })
+
+    // Listen for auth changes (login/logout)
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setIsLoggedIn(true)
+        setUserEmail(session.user.email)
+        setIsAdmin(session.user.user_metadata?.role === 'admin')
       } else {
         setIsLoggedIn(false)
         setUserEmail('')
         setIsAdmin(false)
       }
-    }
+    })
 
-    checkAuth()
-
-    // Listen for storage changes (logout in another tab)
-    window.addEventListener('storage', checkAuth)
-
-    // Custom event for login/logout
-    window.addEventListener('authChange', checkAuth)
-
-    return () => {
-      window.removeEventListener('storage', checkAuth)
-      window.removeEventListener('authChange', checkAuth)
-    }
+    return () => subscription.unsubscribe()
   }, [])
 
-  const handleLogout = () => {
-    // Clear authentication data
-    localStorage.removeItem('isAuthenticated')
-    localStorage.removeItem('user')
-    localStorage.removeItem('isAdmin')
+  const handleLogout = async () => {
+    // Sign out from Supabase
+    await supabase.auth.signOut()
 
-    // Dispatch custom event for other components
-    window.dispatchEvent(new Event('authChange'))
-
-    setIsLoggedIn(false)
-    setUserEmail('')
-    setIsAdmin(false)
+    // State will be updated by onAuthStateChange listener
     setMobileMenuOpen(false)
 
     // Redirect to home
     router.push('/')
+    router.refresh()
   }
 
   return (

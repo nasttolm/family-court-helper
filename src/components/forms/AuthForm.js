@@ -9,8 +9,8 @@ import { loginSchema, registerSchema } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Alert } from '@/components/ui/alert'
 import { Checkbox } from '@/components/ui/checkbox'
+import { supabase } from '@/lib/supabase/client'
 
 export default function AuthForm({ mode = 'login' }) {
   const router = useRouter()
@@ -38,29 +38,63 @@ export default function AuthForm({ mode = 'login' }) {
     setError('')
 
     try {
-      // Mock authentication - just save to localStorage for now
-      // TODO: Replace with real Supabase auth later
+      if (isLogin) {
+        // Login with Supabase
+        const { data: authData, error: authError } = await supabase.auth.signInWithPassword({
+          email: data.email,
+          password: data.password,
+        })
 
-      // Simulate API call
-      await new Promise(resolve => setTimeout(resolve, 1000))
+        if (authError) {
+          throw authError
+        }
 
-      // Mock successful authentication
-      const mockUser = {
-        id: '1',
-        email: data.email,
-        [isLogin ? 'loggedInAt' : 'createdAt']: new Date().toISOString(),
+        // Successful login
+        console.log('[Auth] Login successful:', authData.user.email)
+      } else {
+        // Register with Supabase
+        const { data: authData, error: authError } = await supabase.auth.signUp({
+          email: data.email,
+          password: data.password,
+          options: {
+            data: {
+              // Store acceptance of terms/privacy in user metadata
+              accepted_terms: true,
+              accepted_privacy: true,
+              accepted_at: new Date().toISOString(),
+            },
+          },
+        })
+
+        if (authError) {
+          throw authError
+        }
+
+        // Check if email confirmation is required
+        if (authData.user && !authData.session) {
+          setError('Please check your email to confirm your account before logging in.')
+          setIsLoading(false)
+          return
+        }
+
+        // Successful registration
+        console.log('[Auth] Registration successful:', authData.user.email)
       }
-
-      localStorage.setItem('user', JSON.stringify(mockUser))
-      localStorage.setItem('isAuthenticated', 'true')
-
-      // Dispatch auth change event
-      window.dispatchEvent(new Event('authChange'))
 
       // Redirect to dashboard
       router.push('/dashboard')
+      router.refresh() // Refresh to update server-side session
     } catch (err) {
-      setError(`${isLogin ? 'Login' : 'Registration'} failed. Please try again.`)
+      console.error('[Auth] Error:', err)
+
+      // Handle specific error messages
+      if (err.message.includes('Invalid login credentials')) {
+        setError('Invalid email or password. Please try again.')
+      } else if (err.message.includes('already registered')) {
+        setError('This email is already registered. Please login instead.')
+      } else {
+        setError(err.message || `${isLogin ? 'Login' : 'Registration'} failed. Please try again.`)
+      }
     } finally {
       setIsLoading(false)
     }
@@ -69,9 +103,9 @@ export default function AuthForm({ mode = 'login' }) {
   return (
     <form onSubmit={handleSubmit(onSubmit)} className="space-y-6">
       {error && (
-        <Alert variant="destructive">
-          {error}
-        </Alert>
+        <div className="bg-red-50 border border-red-200 rounded-md p-3">
+          <p className="text-sm text-red-800">{error}</p>
+        </div>
       )}
 
       {/* Email Field */}
@@ -211,18 +245,6 @@ export default function AuthForm({ mode = 'login' }) {
         }
       </Button>
 
-      {/* Info Message */}
-      {isLogin ? (
-        <p className="text-sm text-gray-600 text-center">
-          This is a demo login. Any email/password will work for testing.
-        </p>
-      ) : (
-        <div className="bg-blue-50 border border-blue-200 rounded-md p-3">
-          <p className="text-sm text-blue-800">
-            This is a demo registration. Your data will be stored locally for testing purposes only.
-          </p>
-        </div>
-      )}
     </form>
   )
 }

@@ -25,10 +25,8 @@
 *.pem
 
 # project planning (internal)
-PROJECT_PLAN.md
+PLAN.md
 CLAUDE.md
-FRONTEND_PLAN.md
-SURVEY_JS_PLAN.md
 
 # debug
 npm-debug.log*
