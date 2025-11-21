@@ -10,20 +10,24 @@ export default function Header() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [isLoggedIn, setIsLoggedIn] = useState(false)
   const [userEmail, setUserEmail] = useState('')
+  const [isAdmin, setIsAdmin] = useState(false)
 
   useEffect(() => {
     // Check authentication status
     const checkAuth = () => {
       const isAuthenticated = localStorage.getItem('isAuthenticated')
       const userData = localStorage.getItem('user')
+      const adminStatus = localStorage.getItem('isAdmin')
 
       if (isAuthenticated === 'true' && userData) {
         setIsLoggedIn(true)
         const user = JSON.parse(userData)
         setUserEmail(user.email)
+        setIsAdmin(adminStatus === 'true')
       } else {
         setIsLoggedIn(false)
         setUserEmail('')
+        setIsAdmin(false)
       }
     }
 
@@ -45,12 +49,14 @@ export default function Header() {
     // Clear authentication data
     localStorage.removeItem('isAuthenticated')
     localStorage.removeItem('user')
+    localStorage.removeItem('isAdmin')
 
     // Dispatch custom event for other components
     window.dispatchEvent(new Event('authChange'))
 
     setIsLoggedIn(false)
     setUserEmail('')
+    setIsAdmin(false)
     setMobileMenuOpen(false)
 
     // Redirect to home
@@ -79,6 +85,11 @@ export default function Header() {
                 <Link href="/dashboard" className="text-gray-700 hover:text-gray-900">
                   Dashboard
                 </Link>
+                {isAdmin && (
+                  <Link href="/admin" className="text-blue-600 hover:text-blue-700 font-medium">
+                    Admin
+                  </Link>
+                )}
                 <Button variant="outline" size="sm" onClick={handleLogout}>
                   Logout
                 </Button>
@@ -141,6 +152,15 @@ export default function Header() {
                   >
                     Dashboard
                   </Link>
+                  {isAdmin && (
+                    <Link
+                      href="/admin"
+                      className="text-blue-600 hover:text-blue-700 font-medium"
+                      onClick={() => setMobileMenuOpen(false)}
+                    >
+                      Admin
+                    </Link>
+                  )}
                   <Button variant="outline" size="sm" className="w-full" onClick={handleLogout}>
                     Logout
                   </Button>
