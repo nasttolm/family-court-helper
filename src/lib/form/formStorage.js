@@ -19,15 +19,13 @@ const DEFAULT_FORM_CONFIG = {
         {
           type: "text",
           name: "applicantName",
-          title: "Your Full Name",
-          isRequired: true
+          title: "Your Full Name"
         },
         {
           type: "text",
           name: "applicantEmail",
           title: "Your Email Address",
           inputType: "email",
-          isRequired: true,
           validators: [
             {
               type: "email",
@@ -39,14 +37,12 @@ const DEFAULT_FORM_CONFIG = {
           type: "text",
           name: "applicantDOB",
           title: "Your Date of Birth",
-          inputType: "date",
-          isRequired: true
+          inputType: "date"
         },
         {
           type: "text",
           name: "applicantAddress",
-          title: "Your Address",
-          isRequired: true
+          title: "Your Address"
         },
         {
           type: "text",
@@ -64,14 +60,12 @@ const DEFAULT_FORM_CONFIG = {
         {
           type: "text",
           name: "otherParentName",
-          title: "Other Parent's Full Name",
-          isRequired: true
+          title: "Other Parent's Full Name"
         },
         {
           type: "text",
           name: "otherParentAddress",
-          title: "Other Parent's Address",
-          isRequired: true
+          title: "Other Parent's Address"
         },
         {
           type: "text",
@@ -110,15 +104,13 @@ const DEFAULT_FORM_CONFIG = {
             {
               type: "text",
               name: "childName",
-              title: "Child's Full Name",
-              isRequired: true
+              title: "Child's Full Name"
             },
             {
               type: "text",
               name: "childDOB",
               title: "Date of Birth",
-              inputType: "date",
-              isRequired: true
+              inputType: "date"
             },
             {
               type: "radiogroup",
@@ -141,8 +133,7 @@ const DEFAULT_FORM_CONFIG = {
               type: "comment",
               name: "childSENDDetails",
               title: "Please provide details about SEND",
-              visibleIf: "{panel.childHasSEND} = true",
-              isRequired: true
+              visibleIf: "{panel.childHasSEND} = true"
             },
             {
               type: "boolean",
@@ -154,8 +145,7 @@ const DEFAULT_FORM_CONFIG = {
               type: "comment",
               name: "childHealthDetails",
               title: "Please provide details about health issues",
-              visibleIf: "{panel.childHealthIssues} = true",
-              isRequired: true
+              visibleIf: "{panel.childHealthIssues} = true"
             }
           ]
         }
@@ -170,7 +160,6 @@ const DEFAULT_FORM_CONFIG = {
           type: "radiogroup",
           name: "currentLivingArrangement",
           title: "Where do the children currently live?",
-          isRequired: true,
           choices: [
             "With me",
             "With the other parent",
@@ -184,14 +173,12 @@ const DEFAULT_FORM_CONFIG = {
           name: "currentLivingOther",
           title: "Please specify",
           visibleIf: "{currentLivingArrangement} = 'Other'",
-          isRequired: true
         },
         {
           type: "comment",
           name: "currentArrangementDetails",
           title: "Please describe the current arrangement in detail",
           description: "Include information about daily routines, school arrangements, etc.",
-          isRequired: true
         },
         {
           type: "boolean",
@@ -205,7 +192,6 @@ const DEFAULT_FORM_CONFIG = {
           title: "Please provide details about social care involvement",
           description: "Include dates and reasons for involvement",
           visibleIf: "{socialCareInvolvement} = true",
-          isRequired: true
         }
       ]
     },
@@ -218,7 +204,6 @@ const DEFAULT_FORM_CONFIG = {
           type: "radiogroup",
           name: "proposedLivingArrangement",
           title: "Where do you propose the children should live?",
-          isRequired: true,
           choices: [
             "With me",
             "With the other parent",
@@ -231,21 +216,18 @@ const DEFAULT_FORM_CONFIG = {
           name: "proposedLivingOther",
           title: "Please specify",
           visibleIf: "{proposedLivingArrangement} = 'Other'",
-          isRequired: true
         },
         {
           type: "comment",
           name: "proposedArrangementDetails",
           title: "Please describe your proposed arrangement in detail",
           description: "Include details about schooling, daily routines, and why this arrangement is best for the children",
-          isRequired: true
         },
         {
           type: "comment",
           name: "proposedContactSchedule",
           title: "Proposed contact schedule with the other parent",
           description: "When and how often will the children see the other parent? Include weekdays, weekends, and holidays",
-          isRequired: true
         },
         {
           type: "comment",
@@ -271,7 +253,6 @@ const DEFAULT_FORM_CONFIG = {
           name: "safetyConcernTypes",
           title: "What type of concerns do you have?",
           visibleIf: "{hasSafetyConcerns} = true",
-          isRequired: true,
           choices: [
             "Domestic abuse",
             "Substance abuse",
@@ -288,7 +269,6 @@ const DEFAULT_FORM_CONFIG = {
           title: "Please provide details about your concerns",
           description: "Include dates, incidents, and any evidence if available. Be as specific as possible.",
           visibleIf: "{hasSafetyConcerns} = true",
-          isRequired: true
         },
         {
           type: "boolean",
@@ -303,7 +283,6 @@ const DEFAULT_FORM_CONFIG = {
           title: "Please provide details about police involvement",
           description: "Include crime reference numbers if available",
           visibleIf: "{policeInvolvement} = true",
-          isRequired: true
         },
         {
           type: "boolean",
@@ -317,7 +296,6 @@ const DEFAULT_FORM_CONFIG = {
           name: "courtOrdersDetails",
           title: "Please provide details about existing court orders",
           visibleIf: "{courtOrdersExist} = true",
-          isRequired: true
         }
       ]
     }

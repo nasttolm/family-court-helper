@@ -43,21 +43,6 @@ export default function RegisterPage() {
             </div>
           </CardContent>
         </Card>
-
-        {/* Privacy Notice */}
-        <div className="mt-6 text-center">
-          <p className="text-xs text-gray-500">
-            By creating an account, you agree to our{' '}
-            <Link href="/terms" className="underline hover:text-gray-700">
-              Terms of Service
-            </Link>
-            {' '}and{' '}
-            <Link href="/privacy" className="underline hover:text-gray-700">
-              Privacy Policy
-            </Link>
-            . Your data is automatically deleted after 7 days.
-          </p>
-        </div>
       </div>
     </div>
   )

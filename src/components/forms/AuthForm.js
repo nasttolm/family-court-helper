@@ -1,14 +1,16 @@
 'use client'
 
 import { useState } from 'react'
-import { useForm } from 'react-hook-form'
+import { useForm, Controller } from 'react-hook-form'
 import { zodResolver } from '@hookform/resolvers/zod'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { loginSchema, registerSchema } from '@/lib/validations'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Alert } from '@/components/ui/alert'
+import { Checkbox } from '@/components/ui/checkbox'
 
 export default function AuthForm({ mode = 'login' }) {
   const router = useRouter()
@@ -20,10 +22,15 @@ export default function AuthForm({ mode = 'login' }) {
 
   const {
     register,
+    control,
     handleSubmit,
     formState: { errors },
   } = useForm({
     resolver: zodResolver(schema),
+    defaultValues: {
+      acceptTerms: false,
+      acceptPrivacy: false,
+    },
   })
 
   const onSubmit = async (data) => {
@@ -116,6 +123,79 @@ export default function AuthForm({ mode = 'login' }) {
           {errors.confirmPassword && (
             <p className="text-sm text-red-600">{errors.confirmPassword.message}</p>
           )}
+        </div>
+      )}
+
+      {/* Terms & Privacy Checkboxes (Register only) */}
+      {!isLogin && (
+        <div className="space-y-4 pt-2">
+          {/* Terms of Service */}
+          <div className="flex items-start space-x-3">
+            <Controller
+              name="acceptTerms"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="acceptTerms"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  aria-invalid={errors.acceptTerms ? 'true' : 'false'}
+                />
+              )}
+            />
+            <div className="flex-1">
+              <Label
+                htmlFor="acceptTerms"
+                className="text-sm font-normal leading-relaxed cursor-pointer"
+              >
+                I accept the{' '}
+                <Link
+                  href="/terms"
+                  target="_blank"
+                  className="text-blue-600 hover:text-blue-700 underline"
+                >
+                  Terms of Service
+                </Link>
+              </Label>
+              {errors.acceptTerms && (
+                <p className="text-sm text-red-600 mt-1">{errors.acceptTerms.message}</p>
+              )}
+            </div>
+          </div>
+
+          {/* Privacy Policy */}
+          <div className="flex items-start space-x-3">
+            <Controller
+              name="acceptPrivacy"
+              control={control}
+              render={({ field }) => (
+                <Checkbox
+                  id="acceptPrivacy"
+                  checked={field.value}
+                  onCheckedChange={field.onChange}
+                  aria-invalid={errors.acceptPrivacy ? 'true' : 'false'}
+                />
+              )}
+            />
+            <div className="flex-1">
+              <Label
+                htmlFor="acceptPrivacy"
+                className="text-sm font-normal leading-relaxed cursor-pointer"
+              >
+                I accept the{' '}
+                <Link
+                  href="/privacy"
+                  target="_blank"
+                  className="text-blue-600 hover:text-blue-700 underline"
+                >
+                  Privacy Policy
+                </Link>
+              </Label>
+              {errors.acceptPrivacy && (
+                <p className="text-sm text-red-600 mt-1">{errors.acceptPrivacy.message}</p>
+              )}
+            </div>
+          </div>
         </div>
       )}
 
