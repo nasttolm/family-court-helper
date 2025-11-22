@@ -23,14 +23,23 @@ export default function NewApplicationPage() {
     const config = loadFormConfig()
     const surveyModel = new Model(config)
 
-    // Load saved draft
-    const draft = localStorage.getItem('application_draft')
-    if (draft) {
-      try {
-        surveyModel.data = JSON.parse(draft)
-      } catch (error) {
-        console.error('Error loading draft:', error)
+    // Check URL params for 'new' parameter to clear draft
+    const urlParams = new URLSearchParams(window.location.search)
+    const isNewApplication = urlParams.get('new') === 'true'
+
+    // Load saved draft only if not explicitly creating new application
+    if (!isNewApplication) {
+      const draft = localStorage.getItem('application_draft')
+      if (draft) {
+        try {
+          surveyModel.data = JSON.parse(draft)
+        } catch (error) {
+          console.error('Error loading draft:', error)
+        }
       }
+    } else {
+      // Clear draft if creating new application
+      localStorage.removeItem('application_draft')
     }
 
     // Auto-save on value change
@@ -39,27 +48,35 @@ export default function NewApplicationPage() {
     })
 
     // Handle completion
-    surveyModel.onComplete.add((sender) => {
-      const application = {
-        id: `app-${Date.now()}`,
-        user_id: user.id,
-        dynamic_data: sender.data,
-        status: 'completed',
-        progress: 100,
-        createdAt: new Date().toISOString(),
-        expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString()
+    surveyModel.onComplete.add(async (sender) => {
+      try {
+        // Save to Supabase via API
+        const response = await fetch('/api/applications', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            dynamic_data: sender.data,
+            status: 'completed',
+            progress: 100,
+          }),
+        })
+
+        const data = await response.json()
+
+        if (response.ok) {
+          // Clear draft after successful save
+          localStorage.removeItem('application_draft')
+
+          // Redirect to preview
+          router.push(`/application/preview/${data.application.id}`)
+        } else {
+          console.error('[Application] Error saving:', data.error)
+          alert('Error saving application. Please try again.')
+        }
+      } catch (error) {
+        console.error('[Application] Unexpected error:', error)
+        alert('Error saving application. Please try again.')
       }
-
-      // Save to applications
-      const existingApps = JSON.parse(localStorage.getItem('applications') || '[]')
-      existingApps.push(application)
-      localStorage.setItem('applications', JSON.stringify(existingApps))
-
-      // Clear draft
-      localStorage.removeItem('application_draft')
-
-      // Redirect to preview
-      router.push(`/application/preview/${application.id}`)
     })
 
     setSurvey(surveyModel)

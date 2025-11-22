@@ -20,36 +20,44 @@ export default function PreviewPage({ params }) {
   useEffect(() => {
     if (authLoading || !user) return
 
-    // Load application
-    const apps = JSON.parse(localStorage.getItem('applications') || '[]')
-    const app = apps.find(a => a.id === resolvedParams.id)
+    // Fetch application from Supabase
+    const fetchApplication = async () => {
+      try {
+        const response = await fetch(`/api/applications/${resolvedParams.id}`)
+        const data = await response.json()
 
-    if (!app) {
-      alert('Application not found')
-      router.push('/dashboard')
-      return
+        if (response.ok) {
+          setApplication(data.application)
+
+          // Load form config
+          const config = loadFormConfig()
+          setFormConfig(config)
+        } else {
+          console.error('[Preview] Error fetching application:', data.error)
+          alert('Application not found')
+          router.push('/dashboard')
+        }
+      } catch (error) {
+        console.error('[Preview] Unexpected error:', error)
+        alert('Error loading application')
+        router.push('/dashboard')
+      } finally {
+        setIsLoading(false)
+      }
     }
 
-    setApplication(app)
-
-    // Load form config
-    const config = loadFormConfig()
-    setFormConfig(config)
-    setIsLoading(false)
+    fetchApplication()
   }, [resolvedParams.id, router, user, authLoading])
 
   const handleEdit = () => {
-    // Save current data as draft
-    if (application) {
-      localStorage.setItem('application_draft', JSON.stringify(application.dynamic_data))
-      router.push('/application/new')
-    }
+    // Redirect to edit page
+    router.push(`/application/edit/${resolvedParams.id}`)
   }
 
   const handleGenerateDocument = async () => {
     try {
       // Generate DOCX document
-      const doc = generateDynamicDocument(resolvedParams.id)
+      const doc = generateDynamicDocument(application)
 
       // Convert to blob
       const blob = await Packer.toBlob(doc)

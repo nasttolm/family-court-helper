@@ -4,14 +4,7 @@ import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
-import { getApplications } from '@/lib/mockData'
 import { useAuth } from '@/hooks/useAuth'
-
-// ==================================================
-// MOCK DATA CONFIGURATION
-// TODO: Set to false when backend is integrated
-// ==================================================
-const USE_MOCK_DATA = true
 
 export default function DashboardPage() {
   const { user, isLoading: authLoading } = useAuth()
@@ -19,38 +12,32 @@ export default function DashboardPage() {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    if (authLoading) return
+    if (authLoading || !user) return
 
-    // Load applications
-    // TODO: Replace with API call when backend is ready
-    const apps = getApplications(USE_MOCK_DATA)
-    setApplications(apps)
+    // Fetch applications from Supabase
+    const fetchApplications = async () => {
+      try {
+        const response = await fetch('/api/applications')
+        const data = await response.json()
 
-    setIsLoading(false)
-  }, [authLoading])
+        if (response.ok) {
+          setApplications(data.applications || [])
+        } else {
+          console.error('[Dashboard] Error fetching applications:', data.error)
+        }
+      } catch (error) {
+        console.error('[Dashboard] Unexpected error:', error)
+      } finally {
+        setIsLoading(false)
+      }
+    }
+
+    fetchApplications()
+  }, [authLoading, user])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">
       <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-        {/* Mock Data Warning - TODO: Remove when backend is integrated */}
-        {USE_MOCK_DATA && (
-          <div className="mb-6 bg-amber-50 border border-amber-200 rounded-lg p-4">
-            <div className="flex items-center gap-2">
-              <svg className="w-5 h-5 text-amber-600" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
-              </svg>
-              <div>
-                <p className="text-sm font-medium text-amber-900">
-                  Development Mode - Using Mock Data
-                </p>
-                <p className="text-xs text-amber-700 mt-1">
-                  This is sample data for demonstration purposes. Set USE_MOCK_DATA to false in dashboard/page.js when backend is ready.
-                </p>
-              </div>
-            </div>
-          </div>
-        )}
-
         {/* Welcome Section */}
         <div className="mb-8">
           <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4">
@@ -139,7 +126,7 @@ export default function DashboardPage() {
                   <CardTitle>Your Applications</CardTitle>
                   <CardDescription>Manage and track your court applications</CardDescription>
                 </div>
-                <Link href="/application/new">
+                <Link href="/application/new?new=true">
                   <Button>
                     <svg className="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" strokeWidth="2" stroke="currentColor">
                       <path strokeLinecap="round" strokeLinejoin="round" d="M12 4.5v15m7.5-7.5h-15" />
@@ -163,7 +150,7 @@ export default function DashboardPage() {
                     <p className="text-gray-600 mb-6">
                       Get started by creating your first application
                     </p>
-                    <Link href="/application/new">
+                    <Link href="/application/new?new=true">
                       <Button size="lg">Create Your First Application</Button>
                     </Link>
                   </div>
@@ -171,8 +158,8 @@ export default function DashboardPage() {
                   // Applications List
                   <div className="space-y-4">
                     {applications.map((app) => {
-                      const childrenCount = app.data?.children?.length || 0
-                      const parentName = app.data?.parentInfo?.yourName || 'Unknown'
+                      const childrenCount = app.dynamic_data?.children?.length || 0
+                      const parentName = app.dynamic_data?.applicantName || 'Application'
 
                       return (
                         <div
@@ -198,7 +185,14 @@ export default function DashboardPage() {
                               </p>
                               <div className="flex items-center gap-4 text-sm text-gray-600 mb-3">
                                 <span>
-                                  Created: {new Date(app.createdAt).toLocaleDateString('en-GB', {
+                                  Created: {new Date(app.created_at).toLocaleDateString('en-GB', {
+                                    day: '2-digit',
+                                    month: 'short',
+                                    year: 'numeric'
+                                  })}
+                                </span>
+                                <span>
+                                  Updated: {new Date(app.updated_at).toLocaleDateString('en-GB', {
                                     day: '2-digit',
                                     month: 'short',
                                     year: 'numeric'
@@ -228,15 +222,19 @@ export default function DashboardPage() {
                                 </div>
                               )}
                               <div className="flex gap-2">
-                                <Link href={`/application/edit/${app.id}`}>
-                                  <Button variant="outline" size="sm">
-                                    {app.status === 'draft' ? 'Continue' : 'View'}
-                                  </Button>
-                                </Link>
-                                {app.status === 'completed' && (
-                                  <Link href={`/application/preview/${app.id}`}>
-                                    <Button variant="outline" size="sm">Preview</Button>
+                                {app.status === 'draft' ? (
+                                  <Link href={`/application/edit/${app.id}`}>
+                                    <Button variant="outline" size="sm">Continue</Button>
                                   </Link>
+                                ) : (
+                                  <>
+                                    <Link href={`/application/preview/${app.id}`}>
+                                      <Button variant="outline" size="sm">View</Button>
+                                    </Link>
+                                    <Link href={`/application/edit/${app.id}`}>
+                                      <Button variant="outline" size="sm">Edit</Button>
+                                    </Link>
+                                  </>
                                 )}
                               </div>
                             </div>

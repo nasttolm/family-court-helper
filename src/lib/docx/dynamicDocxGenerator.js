@@ -3,19 +3,15 @@ import { loadFormConfig } from '@/lib/form/formStorage'
 
 /**
  * Generate DOCX document from application data
- * @param {string} applicationId - Application ID
+ * @param {Object} application - Application object with dynamic_data
  * @returns {Document} - DOCX Document object
  */
-export function generateDynamicDocument(applicationId) {
-  // 1. Load application
-  const apps = JSON.parse(localStorage.getItem('applications') || '[]')
-  const application = apps.find(app => app.id === applicationId)
-
+export function generateDynamicDocument(application) {
   if (!application) {
     throw new Error('Application not found')
   }
 
-  // 2. Load form config
+  // Load form config
   const formConfig = loadFormConfig()
 
   // 3. Generate document sections

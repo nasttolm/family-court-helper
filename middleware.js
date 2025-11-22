@@ -33,7 +33,7 @@ export async function middleware(request) {
 
 export const config = {
   matcher: [
-    // Match all routes except static files and API routes
+    // Match all routes except static files
     '/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)',
   ],
 }
