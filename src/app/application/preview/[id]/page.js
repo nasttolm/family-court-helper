@@ -7,21 +7,18 @@ import { loadFormConfig } from '@/lib/form/formStorage'
 import { generateDynamicDocument } from '@/lib/docx/dynamicDocxGenerator'
 import { Packer } from 'docx'
 import { saveAs } from 'file-saver'
+import { useAuth } from '@/hooks/useAuth'
 
 export default function PreviewPage({ params }) {
   const router = useRouter()
   const resolvedParams = use(params)
+  const { user, isLoading: authLoading } = useAuth()
   const [formConfig, setFormConfig] = useState(null)
   const [application, setApplication] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check authentication
-    const isAuthenticated = localStorage.getItem('isAuthenticated')
-    if (isAuthenticated !== 'true') {
-      router.push('/login')
-      return
-    }
+    if (authLoading || !user) return
 
     // Load application
     const apps = JSON.parse(localStorage.getItem('applications') || '[]')
@@ -39,7 +36,7 @@ export default function PreviewPage({ params }) {
     const config = loadFormConfig()
     setFormConfig(config)
     setIsLoading(false)
-  }, [resolvedParams.id, router])
+  }, [resolvedParams.id, router, user, authLoading])
 
   const handleEdit = () => {
     // Save current data as draft

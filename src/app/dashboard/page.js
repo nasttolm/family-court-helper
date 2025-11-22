@@ -5,6 +5,7 @@ import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { Card, CardHeader, CardTitle, CardDescription, CardContent } from '@/components/ui/card'
 import { getApplications } from '@/lib/mockData'
+import { useAuth } from '@/hooks/useAuth'
 
 // ==================================================
 // MOCK DATA CONFIGURATION
@@ -13,16 +14,12 @@ import { getApplications } from '@/lib/mockData'
 const USE_MOCK_DATA = true
 
 export default function DashboardPage() {
-  const [user, setUser] = useState(null)
+  const { user, isLoading: authLoading } = useAuth()
   const [applications, setApplications] = useState([])
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Load user data
-    const userData = localStorage.getItem('user')
-    if (userData) {
-      setUser(JSON.parse(userData))
-    }
+    if (authLoading) return
 
     // Load applications
     // TODO: Replace with API call when backend is ready
@@ -30,7 +27,7 @@ export default function DashboardPage() {
     setApplications(apps)
 
     setIsLoading(false)
-  }, [])
+  }, [authLoading])
 
   return (
     <div className="min-h-screen bg-gray-50 py-8">

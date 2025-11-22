@@ -4,6 +4,7 @@ import { useEffect } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { supabase } from '@/lib/supabase/client'
 
 export default function AdminLayout({ children }) {
   const router = useRouter()
@@ -11,15 +12,15 @@ export default function AdminLayout({ children }) {
 
   useEffect(() => {
     // Check if user is admin
-    const isAdmin = localStorage.getItem('isAdmin')
-    if (isAdmin !== 'true') {
-      router.push('/')
-    }
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user || user.user_metadata?.role !== 'admin') {
+        router.push('/')
+      }
+    })
   }, [router])
 
-  const handleLogout = () => {
-    localStorage.removeItem('isAdmin')
-    window.dispatchEvent(new Event('authChange'))
+  const handleLogout = async () => {
+    await supabase.auth.signOut()
     router.push('/')
   }
 

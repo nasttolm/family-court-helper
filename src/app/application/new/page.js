@@ -6,21 +6,18 @@ import { Model } from 'survey-core'
 import { Survey } from 'survey-react-ui'
 import { Button } from '@/components/ui/button'
 import { loadFormConfig } from '@/lib/form/formStorage'
+import { useAuth } from '@/hooks/useAuth'
 
 import 'survey-core/survey-core.min.css'
 
 export default function NewApplicationPage() {
   const router = useRouter()
+  const { user, isLoading: authLoading } = useAuth()
   const [survey, setSurvey] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    // Check authentication
-    const isAuthenticated = localStorage.getItem('isAuthenticated')
-    if (isAuthenticated !== 'true') {
-      router.push('/login')
-      return
-    }
+    if (authLoading || !user) return
 
     // Load form config
     const config = loadFormConfig()
@@ -43,10 +40,9 @@ export default function NewApplicationPage() {
 
     // Handle completion
     surveyModel.onComplete.add((sender) => {
-      const user = JSON.parse(localStorage.getItem('user') || '{}')
       const application = {
         id: `app-${Date.now()}`,
-        user_id: user.id || '1',
+        user_id: user.id,
         dynamic_data: sender.data,
         status: 'completed',
         progress: 100,
@@ -68,7 +64,7 @@ export default function NewApplicationPage() {
 
     setSurvey(surveyModel)
     setIsLoading(false)
-  }, [router])
+  }, [router, user, authLoading])
 
   const handleSaveAndExit = () => {
     if (survey && survey.data) {

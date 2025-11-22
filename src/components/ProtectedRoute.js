@@ -1,21 +1,11 @@
 'use client'
 
-import { useEffect, useState } from 'react'
-import { useRouter } from 'next/navigation'
+import { useAuth } from '@/hooks/useAuth'
 
+// Note: This component is now redundant as middleware handles route protection
+// Keeping it for backward compatibility, but useAuth hook does the redirect
 export default function ProtectedRoute({ children }) {
-  const router = useRouter()
-  const [isLoading, setIsLoading] = useState(true)
-
-  useEffect(() => {
-    const isAuthenticated = localStorage.getItem('isAuthenticated')
-
-    if (!isAuthenticated || isAuthenticated !== 'true') {
-      router.push('/login')
-    } else {
-      setIsLoading(false)
-    }
-  }, [router])
+  const { isLoading } = useAuth(true)
 
   if (isLoading) {
     return (

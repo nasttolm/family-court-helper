@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import { supabase } from '@/lib/supabase/client'
 
 export function useAuth(requireAuth = true) {
   const router = useRouter()
@@ -10,13 +11,11 @@ export function useAuth(requireAuth = true) {
   const [isLoading, setIsLoading] = useState(true)
 
   useEffect(() => {
-    const checkAuth = () => {
-      const authStatus = localStorage.getItem('isAuthenticated')
-      const userData = localStorage.getItem('user')
-
-      if (authStatus === 'true' && userData) {
+    // Get initial session
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (session?.user) {
         setIsAuthenticated(true)
-        setUser(JSON.parse(userData))
+        setUser(session.user)
       } else {
         setIsAuthenticated(false)
         setUser(null)
@@ -25,18 +24,27 @@ export function useAuth(requireAuth = true) {
           router.push('/login')
         }
       }
-
       setIsLoading(false)
-    }
+    })
 
-    checkAuth()
+    // Listen for auth state changes
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      if (session?.user) {
+        setIsAuthenticated(true)
+        setUser(session.user)
+      } else {
+        setIsAuthenticated(false)
+        setUser(null)
 
-    // Listen for auth changes
-    window.addEventListener('authChange', checkAuth)
+        if (requireAuth) {
+          router.push('/login')
+        }
+      }
+    })
 
-    return () => {
-      window.removeEventListener('authChange', checkAuth)
-    }
+    return () => subscription.unsubscribe()
   }, [router, requireAuth])
 
   return { isAuthenticated, user, isLoading }
