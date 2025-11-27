@@ -15,6 +15,7 @@ export default function NewApplicationPage() {
   const { user, isLoading: authLoading } = useAuth()
   const [survey, setSurvey] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [draftId, setDraftId] = useState(null)
 
   useEffect(() => {
     if (authLoading || !user) return
@@ -30,9 +31,14 @@ export default function NewApplicationPage() {
     // Load saved draft only if not explicitly creating new application
     if (!isNewApplication) {
       const draft = localStorage.getItem('application_draft')
+      const savedDraftId = localStorage.getItem('application_draft_id')
+
       if (draft) {
         try {
           surveyModel.data = JSON.parse(draft)
+          if (savedDraftId) {
+            setDraftId(savedDraftId)
+          }
         } catch (error) {
           console.error('Error loading draft:', error)
         }
@@ -40,6 +46,7 @@ export default function NewApplicationPage() {
     } else {
       // Clear draft if creating new application
       localStorage.removeItem('application_draft')
+      localStorage.removeItem('application_draft_id')
     }
 
     // Auto-save on value change
@@ -66,6 +73,7 @@ export default function NewApplicationPage() {
         if (response.ok) {
           // Clear draft after successful save
           localStorage.removeItem('application_draft')
+          localStorage.removeItem('application_draft_id')
 
           // Redirect to preview
           router.push(`/application/preview/${data.application.id}`)
@@ -83,11 +91,52 @@ export default function NewApplicationPage() {
     setIsLoading(false)
   }, [router, user, authLoading])
 
-  const handleSaveAndExit = () => {
-    if (survey && survey.data) {
+  const handleSaveAndExit = async () => {
+    if (!survey || !survey.data) return
+
+    try {
+      // Calculate progress based on filled fields
+      const allQuestions = survey.getAllQuestions()
+      const filledQuestions = allQuestions.filter(q => {
+        const value = survey.data[q.name]
+        return value !== undefined && value !== null && value !== ''
+      })
+      const progress = Math.round((filledQuestions.length / allQuestions.length) * 100)
+
+      // Save to localStorage
       localStorage.setItem('application_draft', JSON.stringify(survey.data))
-      alert('Your progress has been saved. You can continue later.')
-      router.push('/dashboard')
+
+      // Save to Supabase
+      const method = draftId ? 'PATCH' : 'POST'
+      const url = draftId ? `/api/applications/${draftId}` : '/api/applications'
+
+      const response = await fetch(url, {
+        method,
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dynamic_data: survey.data,
+          status: 'draft',
+          progress: progress,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        const savedId = data.application?.id || draftId
+        if (savedId) {
+          setDraftId(savedId)
+          localStorage.setItem('application_draft_id', savedId)
+        }
+        alert('Your progress has been saved. You can continue later from your dashboard.')
+        router.push('/dashboard')
+      } else {
+        console.error('[Application] Error saving draft:', data.error)
+        alert('Error saving draft. Please try again.')
+      }
+    } catch (error) {
+      console.error('[Application] Unexpected error:', error)
+      alert('Error saving draft. Please try again.')
     }
   }
 

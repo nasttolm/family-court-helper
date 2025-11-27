@@ -95,6 +95,14 @@ export default function EditApplicationPage({ params }) {
   const handleSaveAndExit = async () => {
     if (survey && survey.data) {
       try {
+        // Calculate progress based on filled fields
+        const allQuestions = survey.getAllQuestions()
+        const filledQuestions = allQuestions.filter(q => {
+          const value = survey.data[q.name]
+          return value !== undefined && value !== null && value !== ''
+        })
+        const progress = Math.round((filledQuestions.length / allQuestions.length) * 100)
+
         // Save current progress to Supabase (keep original status)
         const response = await fetch(`/api/applications/${resolvedParams.id}`, {
           method: 'PATCH',
@@ -103,9 +111,7 @@ export default function EditApplicationPage({ params }) {
             dynamic_data: survey.data,
             // Keep original status - don't change it
             status: application.status,
-            progress: application.status === 'draft'
-              ? Math.round((survey.currentPageNo / survey.visiblePageCount) * 100)
-              : 100,
+            progress: application.status === 'draft' ? progress : 100,
           }),
         })
 

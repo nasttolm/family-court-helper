@@ -120,3 +120,218 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Accessibility Styles */
+
+/* Font Size Variants */
+html.text-small {
+  font-size: 14px;
+}
+
+html.text-medium {
+  font-size: 16px; /* default */
+}
+
+html.text-large {
+  font-size: 18px;
+}
+
+/* High Contrast Mode */
+html.high-contrast {
+  --background: #000000; /* Pure black */
+  --foreground: #FFFFFF; /* Pure white */
+  --card: #1a1a1a; /* Very dark gray */
+  --card-foreground: #FFFFFF; /* Pure white */
+  --popover: #1a1a1a;
+  --popover-foreground: #FFFFFF;
+  --primary: #FFFFFF; /* White */
+  --primary-foreground: #000000; /* Black */
+  --secondary: #333333;
+  --secondary-foreground: #FFFFFF;
+  --muted: #333333;
+  --muted-foreground: #FFFFFF;
+  --accent: #444444;
+  --accent-foreground: #FFFFFF;
+  --destructive: #FF4444; /* Bright red */
+  --border: #FFFFFF; /* White border */
+  --input: #1a1a1a;
+  --ring: #FFFFFF;
+}
+
+html.high-contrast body {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast * {
+  border-color: #FFFFFF !important;
+}
+
+/* Text elements */
+html.high-contrast h1,
+html.high-contrast h2,
+html.high-contrast h3,
+html.high-contrast h4,
+html.high-contrast h5,
+html.high-contrast h6,
+html.high-contrast p,
+html.high-contrast span,
+html.high-contrast div,
+html.high-contrast label {
+  color: #FFFFFF !important;
+}
+
+/* Cards and containers */
+html.high-contrast [class*="card"],
+html.high-contrast [class*="Card"] {
+  background: #1a1a1a !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+/* Input fields */
+html.high-contrast input,
+html.high-contrast textarea,
+html.high-contrast select {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+html.high-contrast input::placeholder,
+html.high-contrast textarea::placeholder {
+  color: #CCCCCC !important;
+}
+
+/* Buttons */
+html.high-contrast button {
+  background: #1a1a1a !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+html.high-contrast button:hover {
+  background: #333333 !important;
+}
+
+html.high-contrast button[class*="primary"] {
+  background: #FFFFFF !important;
+  color: #000000 !important;
+}
+
+/* Links */
+html.high-contrast a {
+  color: #66B3FF !important; /* Light blue for links */
+  text-decoration: underline !important;
+}
+
+html.high-contrast a:hover {
+  color: #99CCFF !important; /* Lighter blue on hover */
+}
+
+/* Badges and status indicators */
+html.high-contrast [class*="badge"],
+html.high-contrast [class*="rounded-full"] {
+  background: #333333 !important;
+  color: #FFFFFF !important;
+  border: 1px solid #FFFFFF !important;
+}
+
+/* Icons should be white */
+html.high-contrast svg {
+  color: #FFFFFF !important;
+  fill: currentColor !important;
+}
+
+/* Tables */
+html.high-contrast table,
+html.high-contrast th,
+html.high-contrast td {
+  border: 1px solid #FFFFFF !important;
+  color: #FFFFFF !important;
+}
+
+/* Gray text should be white */
+html.high-contrast [class*="text-gray"],
+html.high-contrast [class*="text-muted"] {
+  color: #FFFFFF !important;
+}
+
+/* Backgrounds */
+html.high-contrast [class*="bg-gray"],
+html.high-contrast [class*="bg-blue"],
+html.high-contrast [class*="bg-white"] {
+  background: #1a1a1a !important;
+}
+
+html.high-contrast [class*="bg-amber"] {
+  background: #333333 !important;
+}
+
+/* Alerts and notices */
+html.high-contrast [class*="alert"] {
+  background: #1a1a1a !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFCC00 !important;
+}
+
+/* Survey.js Form Styles */
+html.high-contrast .sd-root-modern,
+html.high-contrast .sd-container-modern,
+html.high-contrast .sd-page,
+html.high-contrast .sd-body {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .sd-title,
+html.high-contrast .sd-description,
+html.high-contrast .sd-question__title,
+html.high-contrast .sd-question__description,
+html.high-contrast .sd-panel__title,
+html.high-contrast .sd-panel__description {
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .sd-input,
+html.high-contrast .sd-text,
+html.high-contrast .sd-comment,
+html.high-contrast .sd-dropdown,
+html.high-contrast input[type="text"],
+html.high-contrast input[type="email"],
+html.high-contrast input[type="tel"],
+html.high-contrast input[type="date"] {
+  background: #000000 !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+html.high-contrast .sd-question,
+html.high-contrast .sd-panel {
+  background: #1a1a1a !important;
+  border: 1px solid #FFFFFF !important;
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .sd-btn,
+html.high-contrast .sd-navigation__complete-btn,
+html.high-contrast .sd-navigation__prev-btn,
+html.high-contrast .sd-navigation__next-btn {
+  background: #1a1a1a !important;
+  color: #FFFFFF !important;
+  border: 2px solid #FFFFFF !important;
+}
+
+html.high-contrast .sd-btn:hover {
+  background: #333333 !important;
+}
+
+html.high-contrast .sd-checkbox__label,
+html.high-contrast .sd-radio__label,
+html.high-contrast .sd-boolean__label {
+  color: #FFFFFF !important;
+}
+
+html.high-contrast .sd-progress__text {
+  color: #FFFFFF !important;
+}

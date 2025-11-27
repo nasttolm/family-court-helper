@@ -35,7 +35,7 @@ export default function HomePage() {
           <div className="text-center mb-12">
             <h2 className="text-3xl font-bold text-gray-900">How It Works</h2>
             <p className="mt-4 text-lg text-gray-600">
-              Three simple steps to get your court-ready document
+              Three simple steps to organize your information
             </p>
           </div>
 
@@ -74,10 +74,10 @@ export default function HomePage() {
                 <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mb-4">
                   <span className="text-2xl font-bold text-blue-600">3</span>
                 </div>
-                <CardTitle>Download or Email</CardTitle>
+                <CardTitle>Download Your Document</CardTitle>
                 <CardDescription>
-                  Generate a summary document with all your information organized in one place.
-                  Download it to share with your solicitor or use for your own reference.
+                  Generate a Word document with all your information clearly organized.
+                  Download it for your own records or to share with your solicitor.
                 </CardDescription>
               </CardHeader>
             </Card>
@@ -121,7 +121,7 @@ export default function HomePage() {
                 <CardTitle className="text-lg">Well-Organized</CardTitle>
                 <CardDescription>
                   Information is structured clearly to help you and your legal representative
-                  understand your situation and prepare for court.
+                  understand your situation.
                 </CardDescription>
               </CardHeader>
             </Card>
