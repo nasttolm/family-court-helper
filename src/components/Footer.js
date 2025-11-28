@@ -15,12 +15,7 @@ export default function Footer() {
         </div>
 
         {/* Footer links */}
-        <div className="flex flex-col md:flex-row justify-between items-center space-y-4 md:space-y-0">
-          {/* Copyright */}
-          <div className="text-sm text-gray-600">
-            &copy; {currentYear} Family Court Helper. All rights reserved.
-          </div>
-
+        <div className="flex flex-col items-center space-y-4">
           {/* Links */}
           <div className="flex space-x-6 text-sm">
             <Link href="/privacy" className="text-gray-600 hover:text-gray-900">
@@ -29,6 +24,11 @@ export default function Footer() {
             <Link href="/terms" className="text-gray-600 hover:text-gray-900">
               Terms of Service
             </Link>
+          </div>
+
+          {/* Copyright */}
+          <div className="text-sm text-gray-600">
+            &copy; {currentYear} Family Court Helper. All rights reserved.
           </div>
         </div>
       </div>

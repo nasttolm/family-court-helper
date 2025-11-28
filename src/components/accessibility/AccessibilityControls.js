@@ -61,7 +61,7 @@ export default function AccessibilityControls() {
       {/* Floating Button */}
       <button
         onClick={() => setIsOpen(!isOpen)}
-        className="fixed bottom-6 right-6 z-50 w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
+        className="fixed bottom-6 right-6 z-[9999] w-14 h-14 bg-blue-600 hover:bg-blue-700 text-white rounded-full shadow-lg flex items-center justify-center transition-all"
         aria-label="Accessibility settings"
         title="Accessibility settings"
       >
@@ -92,7 +92,7 @@ export default function AccessibilityControls() {
 
       {/* Settings Panel */}
       {isOpen && (
-        <div className="fixed bottom-24 right-6 z-50 w-80 bg-white rounded-lg shadow-2xl border border-gray-200 p-6">
+        <div className="fixed bottom-24 right-6 z-[9999] w-80 bg-white rounded-lg shadow-2xl border border-gray-200 p-6">
           {/* Header */}
           <div className="flex items-center justify-between mb-4">
             <h3 className="text-lg font-semibold text-gray-900">

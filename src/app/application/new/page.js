@@ -7,6 +7,7 @@ import { Survey } from 'survey-react-ui'
 import { Button } from '@/components/ui/button'
 import { loadFormConfig } from '@/lib/form/formStorage'
 import { useAuth } from '@/hooks/useAuth'
+import ConsentModal from '@/components/modals/ConsentModal'
 
 import 'survey-core/survey-core.min.css'
 
@@ -16,6 +17,8 @@ export default function NewApplicationPage() {
   const [survey, setSurvey] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
   const [draftId, setDraftId] = useState(null)
+  const [showConsentModal, setShowConsentModal] = useState(false)
+  const [pendingFormData, setPendingFormData] = useState(null)
 
   useEffect(() => {
     if (authLoading || !user) return
@@ -54,42 +57,49 @@ export default function NewApplicationPage() {
       localStorage.setItem('application_draft', JSON.stringify(sender.data))
     })
 
-    // Handle completion
+    // Handle completion - show consent modal first
     surveyModel.onComplete.add(async (sender) => {
-      try {
-        // Save to Supabase via API
-        const response = await fetch('/api/applications', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            dynamic_data: sender.data,
-            status: 'completed',
-            progress: 100,
-          }),
-        })
-
-        const data = await response.json()
-
-        if (response.ok) {
-          // Clear draft after successful save
-          localStorage.removeItem('application_draft')
-          localStorage.removeItem('application_draft_id')
-
-          // Redirect to preview
-          router.push(`/application/preview/${data.application.id}`)
-        } else {
-          console.error('[Application] Error saving:', data.error)
-          alert('Error saving application. Please try again.')
-        }
-      } catch (error) {
-        console.error('[Application] Unexpected error:', error)
-        alert('Error saving application. Please try again.')
-      }
+      setPendingFormData(sender.data)
+      setShowConsentModal(true)
     })
 
     setSurvey(surveyModel)
     setIsLoading(false)
   }, [router, user, authLoading])
+
+  const handleConsentConfirm = async () => {
+    setShowConsentModal(false)
+
+    try {
+      // Save to Supabase via API
+      const response = await fetch('/api/applications', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dynamic_data: pendingFormData,
+          status: 'completed',
+          progress: 100,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (response.ok) {
+        // Clear draft after successful save
+        localStorage.removeItem('application_draft')
+        localStorage.removeItem('application_draft_id')
+
+        // Redirect to preview
+        router.push(`/application/preview/${data.application.id}`)
+      } else {
+        console.error('[Application] Error saving:', data.error)
+        alert('Error saving application. Please try again.')
+      }
+    } catch (error) {
+      console.error('[Application] Unexpected error:', error)
+      alert('Error saving application. Please try again.')
+    }
+  }
 
   const handleSaveAndExit = async () => {
     if (!survey || !survey.data) return
@@ -184,6 +194,13 @@ export default function NewApplicationPage() {
           </Button>
         </div>
       </div>
+
+      {/* Consent Modal (Before Completion) */}
+      <ConsentModal
+        isOpen={showConsentModal}
+        onConfirm={handleConsentConfirm}
+        onCancel={() => setShowConsentModal(false)}
+      />
     </div>
   )
 }

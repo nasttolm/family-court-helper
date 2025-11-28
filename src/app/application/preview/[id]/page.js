@@ -8,6 +8,7 @@ import { generateDynamicDocument } from '@/lib/docx/dynamicDocxGenerator'
 import { Packer } from 'docx'
 import { saveAs } from 'file-saver'
 import { useAuth } from '@/hooks/useAuth'
+import ConsentModal from '@/components/modals/ConsentModal'
 
 export default function PreviewPage({ params }) {
   const router = useRouter()
@@ -16,6 +17,7 @@ export default function PreviewPage({ params }) {
   const [formConfig, setFormConfig] = useState(null)
   const [application, setApplication] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showConsentModal, setShowConsentModal] = useState(false)
 
   useEffect(() => {
     if (authLoading || !user) return
@@ -54,7 +56,14 @@ export default function PreviewPage({ params }) {
     router.push(`/application/edit/${resolvedParams.id}`)
   }
 
-  const handleGenerateDocument = async () => {
+  const handleGenerateDocument = () => {
+    // Show consent modal first
+    setShowConsentModal(true)
+  }
+
+  const handleConsentConfirm = async () => {
+    setShowConsentModal(false)
+
     try {
       // Generate DOCX document
       const doc = generateDynamicDocument(application)
@@ -182,7 +191,7 @@ export default function PreviewPage({ params }) {
                 <div>
                   <span className="text-gray-600">Created:</span>{' '}
                   <span className="font-semibold">
-                    {new Date(application.createdAt).toLocaleDateString('en-GB')}
+                    {new Date(application.created_at).toLocaleDateString('en-GB')}
                   </span>
                 </div>
                 <div>
@@ -192,7 +201,7 @@ export default function PreviewPage({ params }) {
                 <div>
                   <span className="text-gray-600">Expires:</span>{' '}
                   <span className="font-semibold">
-                    {new Date(application.expiresAt).toLocaleDateString('en-GB')}
+                    {new Date(application.expires_at).toLocaleDateString('en-GB')}
                   </span>
                 </div>
               </div>
@@ -301,6 +310,15 @@ export default function PreviewPage({ params }) {
           </Button>
         </div>
       </div>
+
+      {/* Consent Modal (Before Download) */}
+      <ConsentModal
+        isOpen={showConsentModal}
+        onConfirm={handleConsentConfirm}
+        onCancel={() => setShowConsentModal(false)}
+        confirmButtonText="Agree and Download"
+        title="Before You Download"
+      />
     </div>
   )
 }

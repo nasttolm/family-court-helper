@@ -17,12 +17,19 @@ export default function HomePage() {
               Free tool to help UK parents organize and summarize information about their family
               situation for child custody court applications. Not a substitute for legal advice.
             </p>
-            <div className="mt-10 flex justify-center gap-4">
+            <div className="mt-10 flex flex-col sm:flex-row justify-center gap-4 items-center">
               <Link href="/register">
-                <Button size="lg">Get Started</Button>
+                <Button size="lg" className="w-full sm:w-auto">Create Free Account</Button>
               </Link>
               <Link href="/login">
-                <Button variant="outline" size="lg">Login</Button>
+                <Button variant="outline" size="lg" className="w-full sm:w-auto">Login</Button>
+              </Link>
+            </div>
+            <div className="mt-4 text-center">
+              <Link href="/application/guest">
+                <Button variant="link" className="text-blue-600 hover:text-blue-700">
+                  Try without registration →
+                </Button>
               </Link>
             </div>
           </div>

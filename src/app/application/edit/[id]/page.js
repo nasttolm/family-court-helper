@@ -7,6 +7,7 @@ import { Survey } from 'survey-react-ui'
 import { Button } from '@/components/ui/button'
 import { loadFormConfig } from '@/lib/form/formStorage'
 import { useAuth } from '@/hooks/useAuth'
+import ConsentModal from '@/components/modals/ConsentModal'
 
 import 'survey-core/survey-core.min.css'
 
@@ -17,6 +18,8 @@ export default function EditApplicationPage({ params }) {
   const [survey, setSurvey] = useState(null)
   const [application, setApplication] = useState(null)
   const [isLoading, setIsLoading] = useState(true)
+  const [showConsentModal, setShowConsentModal] = useState(false)
+  const [pendingFormData, setPendingFormData] = useState(null)
 
   useEffect(() => {
     if (authLoading || !user) return
@@ -42,36 +45,10 @@ export default function EditApplicationPage({ params }) {
             localStorage.setItem('application_edit_draft', JSON.stringify(sender.data))
           })
 
-          // Handle completion - update existing application
+          // Handle completion - show consent modal first
           surveyModel.onComplete.add(async (sender) => {
-            try {
-              // Update application via API
-              const updateResponse = await fetch(`/api/applications/${resolvedParams.id}`, {
-                method: 'PATCH',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                  dynamic_data: sender.data,
-                  status: 'completed',
-                  progress: 100,
-                }),
-              })
-
-              const updateData = await updateResponse.json()
-
-              if (updateResponse.ok) {
-                // Clear edit draft
-                localStorage.removeItem('application_edit_draft')
-
-                // Redirect to preview
-                router.push(`/application/preview/${resolvedParams.id}`)
-              } else {
-                console.error('[Application] Error updating:', updateData.error)
-                alert('Error updating application. Please try again.')
-              }
-            } catch (error) {
-              console.error('[Application] Unexpected error:', error)
-              alert('Error updating application. Please try again.')
-            }
+            setPendingFormData(sender.data)
+            setShowConsentModal(true)
           })
 
           setSurvey(surveyModel)
@@ -91,6 +68,39 @@ export default function EditApplicationPage({ params }) {
 
     fetchApplication()
   }, [resolvedParams.id, router, user, authLoading])
+
+  const handleConsentConfirm = async () => {
+    setShowConsentModal(false)
+
+    try {
+      // Update application via API
+      const updateResponse = await fetch(`/api/applications/${resolvedParams.id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          dynamic_data: pendingFormData,
+          status: 'completed',
+          progress: 100,
+        }),
+      })
+
+      const updateData = await updateResponse.json()
+
+      if (updateResponse.ok) {
+        // Clear edit draft
+        localStorage.removeItem('application_edit_draft')
+
+        // Redirect to preview
+        router.push(`/application/preview/${resolvedParams.id}`)
+      } else {
+        console.error('[Application] Error updating:', updateData.error)
+        alert('Error updating application. Please try again.')
+      }
+    } catch (error) {
+      console.error('[Application] Unexpected error:', error)
+      alert('Error updating application. Please try again.')
+    }
+  }
 
   const handleSaveAndExit = async () => {
     if (survey && survey.data) {
@@ -182,6 +192,13 @@ export default function EditApplicationPage({ params }) {
           </Button>
         </div>
       </div>
+
+      {/* Consent Modal (Before Completion) */}
+      <ConsentModal
+        isOpen={showConsentModal}
+        onConfirm={handleConsentConfirm}
+        onCancel={() => setShowConsentModal(false)}
+      />
     </div>
   )
 }
