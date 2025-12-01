@@ -23,48 +23,58 @@ export default function NewApplicationPage() {
   useEffect(() => {
     if (authLoading || !user) return
 
-    // Load form config
-    const config = loadFormConfig()
-    const surveyModel = new Model(config)
+    // Load form config from API
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/form-config')
+        const data = await response.json()
+        const surveyModel = new Model(data.config)
 
-    // Check URL params for 'new' parameter to clear draft
-    const urlParams = new URLSearchParams(window.location.search)
-    const isNewApplication = urlParams.get('new') === 'true'
+        // Check URL params for 'new' parameter to clear draft
+        const urlParams = new URLSearchParams(window.location.search)
+        const isNewApplication = urlParams.get('new') === 'true'
 
-    // Load saved draft only if not explicitly creating new application
-    if (!isNewApplication) {
-      const draft = localStorage.getItem('application_draft')
-      const savedDraftId = localStorage.getItem('application_draft_id')
+        // Load saved draft only if not explicitly creating new application
+        if (!isNewApplication) {
+          const draft = localStorage.getItem('application_draft')
+          const savedDraftId = localStorage.getItem('application_draft_id')
 
-      if (draft) {
-        try {
-          surveyModel.data = JSON.parse(draft)
-          if (savedDraftId) {
-            setDraftId(savedDraftId)
+          if (draft) {
+            try {
+              surveyModel.data = JSON.parse(draft)
+              if (savedDraftId) {
+                setDraftId(savedDraftId)
+              }
+            } catch (error) {
+              console.error('Error loading draft:', error)
+            }
           }
-        } catch (error) {
-          console.error('Error loading draft:', error)
+        } else {
+          // Clear draft if creating new application
+          localStorage.removeItem('application_draft')
+          localStorage.removeItem('application_draft_id')
         }
+
+        // Auto-save on value change
+        surveyModel.onValueChanged.add((sender) => {
+          localStorage.setItem('application_draft', JSON.stringify(sender.data))
+        })
+
+        // Handle completion - show consent modal first
+        surveyModel.onComplete.add(async (sender) => {
+          setPendingFormData(sender.data)
+          setShowConsentModal(true)
+        })
+
+        setSurvey(surveyModel)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Error loading form config:', error)
+        setIsLoading(false)
       }
-    } else {
-      // Clear draft if creating new application
-      localStorage.removeItem('application_draft')
-      localStorage.removeItem('application_draft_id')
     }
 
-    // Auto-save on value change
-    surveyModel.onValueChanged.add((sender) => {
-      localStorage.setItem('application_draft', JSON.stringify(sender.data))
-    })
-
-    // Handle completion - show consent modal first
-    surveyModel.onComplete.add(async (sender) => {
-      setPendingFormData(sender.data)
-      setShowConsentModal(true)
-    })
-
-    setSurvey(surveyModel)
-    setIsLoading(false)
+    loadConfig()
   }, [router, user, authLoading])
 
   const handleConsentConfirm = async () => {

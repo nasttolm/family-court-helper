@@ -33,9 +33,10 @@ export default function EditApplicationPage({ params }) {
         if (response.ok) {
           setApplication(data.application)
 
-          // Load form config
-          const config = loadFormConfig()
-          const surveyModel = new Model(config)
+          // Load form config from API
+          const configResponse = await fetch('/api/form-config')
+          const configData = await configResponse.json()
+          const surveyModel = new Model(configData.config)
 
           // Load application data into survey
           surveyModel.data = data.application.dynamic_data || {}

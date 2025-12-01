@@ -7,6 +7,7 @@ import { Survey } from 'survey-react-ui'
 import { Button } from '@/components/ui/button'
 import { loadFormConfig } from '@/lib/form/formStorage'
 import { generateDynamicDocument } from '@/lib/docx/dynamicDocxGenerator'
+import { generateNarrativeDocument } from '@/lib/docx/narrativeDocxGenerator'
 import { Packer } from 'docx'
 import { saveAs } from 'file-saver'
 import Link from 'next/link'
@@ -22,42 +23,57 @@ export default function GuestApplicationPage() {
   const [showRegistrationPrompt, setShowRegistrationPrompt] = useState(false)
   const [showConsentModal, setShowConsentModal] = useState(false)
   const [pendingFormData, setPendingFormData] = useState(null)
+  const [documentFormat, setDocumentFormat] = useState('narrative')
+  const [narrativeTemplate, setNarrativeTemplate] = useState(null)
+  const [formConfig, setFormConfig] = useState(null)
 
   useEffect(() => {
-    // Load form config
-    const config = loadFormConfig()
-    const surveyModel = new Model(config)
+    // Load form config from API
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/form-config')
+        const data = await response.json()
 
-    // Check if there's a saved guest draft
-    const urlParams = new URLSearchParams(window.location.search)
-    const isNewApplication = urlParams.get('new') === 'true'
+        setFormConfig(data.config)
+        const surveyModel = new Model(data.config)
 
-    if (!isNewApplication) {
-      const draft = localStorage.getItem('guest_application_draft')
-      if (draft) {
-        try {
-          surveyModel.data = JSON.parse(draft)
-        } catch (error) {
-          console.error('Error loading guest draft:', error)
+        // Check if there's a saved guest draft
+        const urlParams = new URLSearchParams(window.location.search)
+        const isNewApplication = urlParams.get('new') === 'true'
+
+        if (!isNewApplication) {
+          const draft = localStorage.getItem('guest_application_draft')
+          if (draft) {
+            try {
+              surveyModel.data = JSON.parse(draft)
+            } catch (error) {
+              console.error('Error loading guest draft:', error)
+            }
+          }
+        } else {
+          localStorage.removeItem('guest_application_draft')
         }
+
+        // Auto-save on value change (localStorage only)
+        surveyModel.onValueChanged.add((sender) => {
+          localStorage.setItem('guest_application_draft', JSON.stringify(sender.data))
+        })
+
+        // Handle completion - show consent modal first
+        surveyModel.onComplete.add(async (sender) => {
+          setPendingFormData(sender.data)
+          setShowConsentModal(true)
+        })
+
+        setSurvey(surveyModel)
+        setIsLoading(false)
+      } catch (error) {
+        console.error('Error loading form config:', error)
+        setIsLoading(false)
       }
-    } else {
-      localStorage.removeItem('guest_application_draft')
     }
 
-    // Auto-save on value change (localStorage only)
-    surveyModel.onValueChanged.add((sender) => {
-      localStorage.setItem('guest_application_draft', JSON.stringify(sender.data))
-    })
-
-    // Handle completion - show consent modal first
-    surveyModel.onComplete.add(async (sender) => {
-      setPendingFormData(sender.data)
-      setShowConsentModal(true)
-    })
-
-    setSurvey(surveyModel)
-    setIsLoading(false)
+    loadConfig()
   }, [])
 
   const handleConsentConfirm = async () => {
@@ -80,13 +96,40 @@ export default function GuestApplicationPage() {
         created_at: new Date().toISOString(),
       }
 
-      // Generate DOCX
-      const doc = generateDynamicDocument(guestApplication)
+      let doc
+
+      if (documentFormat === 'narrative') {
+        // Load narrative template if not already loaded
+        if (!narrativeTemplate) {
+          const templateResponse = await fetch('/api/narrative-template', {
+            method: 'POST'
+          })
+
+          if (!templateResponse.ok) {
+            throw new Error('Failed to load narrative template')
+          }
+
+          const templateData = await templateResponse.json()
+          console.log('[Guest] Template loaded:', templateData.cached ? 'from cache' : 'newly generated')
+          setNarrativeTemplate(templateData.template)
+
+          // Generate narrative document
+          doc = generateNarrativeDocument(guestApplication, templateData.template)
+        } else {
+          // Use cached template
+          doc = generateNarrativeDocument(guestApplication, narrativeTemplate)
+        }
+      } else {
+        // Generate Q&A format document
+        doc = generateDynamicDocument(guestApplication)
+      }
+
       const blob = await Packer.toBlob(doc)
 
       // Generate filename with timestamp
       const timestamp = new Date().toISOString().split('T')[0]
-      const filename = `Court_Application_${timestamp}.docx`
+      const formatSuffix = documentFormat === 'narrative' ? 'narrative' : 'qa'
+      const filename = `Court_Application_${formatSuffix}_${timestamp}.docx`
 
       // Download
       saveAs(blob, filename)
@@ -161,6 +204,45 @@ export default function GuestApplicationPage() {
         {/* Form */}
         <div className="bg-white rounded-lg shadow-sm p-6">
           {survey && <Survey model={survey} />}
+        </div>
+
+        {/* Document Format Selection */}
+        <div className="mt-6 bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <h3 className="text-sm font-semibold text-gray-900 mb-3">Choose Document Format</h3>
+          <div className="space-y-2">
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="radio"
+                name="documentFormat"
+                value="narrative"
+                checked={documentFormat === 'narrative'}
+                onChange={(e) => setDocumentFormat(e.target.value)}
+                className="mt-1 mr-3"
+              />
+              <div>
+                <div className="font-medium text-gray-900">Narrative Format (Recommended)</div>
+                <div className="text-sm text-gray-600">
+                  Professional flowing text, easier to read. Generated using AI to create natural paragraphs.
+                </div>
+              </div>
+            </label>
+            <label className="flex items-start cursor-pointer">
+              <input
+                type="radio"
+                name="documentFormat"
+                value="qa"
+                checked={documentFormat === 'qa'}
+                onChange={(e) => setDocumentFormat(e.target.value)}
+                className="mt-1 mr-3"
+              />
+              <div>
+                <div className="font-medium text-gray-900">Question & Answer Format</div>
+                <div className="text-sm text-gray-600">
+                  Traditional format with questions and answers listed.
+                </div>
+              </div>
+            </label>
+          </div>
         </div>
 
         {/* Actions */}
@@ -252,7 +334,14 @@ export default function GuestApplicationPage() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
           <div className="bg-white rounded-lg p-8 text-center">
             <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto mb-4"></div>
-            <p className="text-gray-700 font-medium">Generating your document...</p>
+            <p className="text-gray-700 font-medium">
+              {documentFormat === 'narrative' && !narrativeTemplate
+                ? 'Loading narrative template...'
+                : 'Generating your document...'}
+            </p>
+            {documentFormat === 'narrative' && !narrativeTemplate && (
+              <p className="text-gray-500 text-sm mt-2">This may take 5-10 seconds on first use</p>
+            )}
           </div>
         </div>
       )}

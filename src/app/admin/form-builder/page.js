@@ -25,62 +25,105 @@ export default function FormBuilderPage() {
   const [isSaving, setIsSaving] = useState(false)
 
   useEffect(() => {
-    // Load form config
-    const config = loadFormConfig()
-    const currentVersion = getFormVersion()
-    setVersion(currentVersion)
+    // Load form config from API
+    const loadConfig = async () => {
+      try {
+        const response = await fetch('/api/form-config')
+        const data = await response.json()
 
-    // Initialize Survey Creator
-    const creatorOptions = {
-      showLogicTab: false,
-      isAutoSave: false,
-      showJSONEditorTab: true,
-      showTranslationTab: false,
-      showEmbeddedSurveyTab: false
+        setVersion(data.version || 0)
+
+        // Initialize Survey Creator
+        const creatorOptions = {
+          showLogicTab: false,
+          isAutoSave: false,
+          showJSONEditorTab: true,
+          showTranslationTab: false,
+          showEmbeddedSurveyTab: false
+        }
+
+        const surveyCreator = new SurveyCreator(creatorOptions)
+        surveyCreator.JSON = data.config
+        setCreator(surveyCreator)
+      } catch (error) {
+        console.error('Error loading form config:', error)
+        setSaveMessage('Error loading form configuration')
+      }
     }
 
-    const surveyCreator = new SurveyCreator(creatorOptions)
-    surveyCreator.JSON = config
-    setCreator(surveyCreator)
+    loadConfig()
   }, [])
 
-  const handleSave = () => {
+  const handleSave = async () => {
     setIsSaving(true)
     setSaveMessage('')
 
     try {
       const json = creator.JSON
-      const result = saveFormConfig(json)
+      console.log('[Form Builder] Saving form config...', { pages: json.pages?.length })
 
-      if (result.success) {
-        setVersion(result.version)
-        setSaveMessage(`Form saved successfully! Version ${result.version}`)
-        setTimeout(() => setSaveMessage(''), 3000)
+      const response = await fetch('/api/form-config', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          config: json,
+          notes: `Updated by admin`
+        })
+      })
+
+      console.log('[Form Builder] Response status:', response.status)
+      const data = await response.json()
+      console.log('[Form Builder] Response data:', data)
+
+      if (response.ok) {
+        setVersion(data.config.version)
+        setSaveMessage(data.message || `Form saved successfully! Version ${data.config.version}`)
+        setTimeout(() => setSaveMessage(''), 5000)
+        console.log('[Form Builder] ✅ Form saved successfully, version:', data.config.version)
       } else {
-        setSaveMessage(`Error: ${result.error}`)
+        console.error('[Form Builder] ❌ Save failed:', data.error)
+        setSaveMessage(`Error: ${data.error || 'Failed to save form'}`)
       }
     } catch (error) {
+      console.error('[Form Builder] ❌ Unexpected error:', error)
       setSaveMessage(`Error saving form: ${error.message}`)
     } finally {
       setIsSaving(false)
     }
   }
 
-  const handleReset = () => {
-    if (window.confirm('Are you sure you want to reset the form to default? This cannot be undone.')) {
-      clearFormConfig()
-      const config = loadFormConfig()
-      creator.JSON = config
-      setVersion(0)
-      setSaveMessage('Form reset to default')
-      setTimeout(() => setSaveMessage(''), 3000)
+  const handleReset = async () => {
+    if (window.confirm('Are you sure you want to reset the form to default? This will reload the current active form from the database. To create a new default, edit and save the form.')) {
+      try {
+        const response = await fetch('/api/form-config')
+        const data = await response.json()
+        creator.JSON = data.config
+        setVersion(data.version)
+        setSaveMessage('Form reloaded from database')
+        setTimeout(() => setSaveMessage(''), 3000)
+      } catch (error) {
+        setSaveMessage('Error reloading form')
+      }
     }
   }
 
   const handleExport = () => {
-    exportFormConfig()
-    setSaveMessage('Form exported successfully!')
-    setTimeout(() => setSaveMessage(''), 3000)
+    try {
+      const config = creator.JSON
+      const blob = new Blob([JSON.stringify(config, null, 2)], { type: 'application/json' })
+      const url = URL.createObjectURL(blob)
+      const link = document.createElement('a')
+      link.href = url
+      link.download = `form_config_v${version}.json`
+      link.click()
+      URL.revokeObjectURL(url)
+      setSaveMessage('Form exported successfully!')
+      setTimeout(() => setSaveMessage(''), 3000)
+    } catch (error) {
+      setSaveMessage('Error exporting form')
+    }
   }
 
   const handleImport = (e) => {
