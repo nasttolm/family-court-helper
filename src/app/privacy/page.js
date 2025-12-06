@@ -148,7 +148,7 @@ export default function PrivacyPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">6. Data Retention</h2>
               <ul className="list-disc pl-6 space-y-2 mb-4">
-                <li>User specific questionnaire data is deleted automatically after 7 days.</li>
+                <li>User specific questionnaire data is deleted automatically after 30 days.</li>
                 <li>Account data (email/password) is retained until you delete your account.</li>
                 <li>Backups, if any, are cleared within 30 days.</li>
               </ul>

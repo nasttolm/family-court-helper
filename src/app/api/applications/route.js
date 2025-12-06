@@ -70,7 +70,7 @@ export async function POST(request) {
           dynamic_data,
           status,
           progress,
-          // expires_at is auto-calculated by database (created_at + 7 days)
+          // expires_at is auto-calculated by database (created_at + 30 days)
         },
       ])
       .select()

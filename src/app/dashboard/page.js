@@ -57,7 +57,7 @@ export default function DashboardPage() {
               </svg>
               <div>
                 <p className="text-sm font-medium text-blue-900">Auto-Delete Protection</p>
-                <p className="text-xs text-blue-700">Data removed after 7 days</p>
+                <p className="text-xs text-blue-700">Data removed after 30 days</p>
               </div>
             </div>
           </div>

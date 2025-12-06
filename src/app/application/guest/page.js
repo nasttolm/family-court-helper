@@ -179,7 +179,7 @@ export default function GuestApplicationPage() {
               </p>
               <Link href="/register">
                 <Button variant="outline" size="sm" className="border-amber-600 text-amber-900 hover:bg-amber-100">
-                  Register to save for 7 days
+                  Register to save for 30 days
                 </Button>
               </Link>
             </div>
@@ -300,7 +300,7 @@ export default function GuestApplicationPage() {
                   <svg className="w-4 h-4 flex-shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
                     <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
                   </svg>
-                  <span>Your data is kept safe for 7 days</span>
+                  <span>Your data is kept safe for 30 days</span>
                 </li>
               </ul>
             </div>

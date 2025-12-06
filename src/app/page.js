@@ -105,7 +105,7 @@ export default function HomePage() {
               <CardHeader>
                 <CardTitle className="text-lg">Privacy Focused</CardTitle>
                 <CardDescription>
-                  Your data is automatically deleted after 7 days. We prioritize your privacy
+                  Your data is automatically deleted after 30 days. We prioritize your privacy
                   and security.
                 </CardDescription>
               </CardHeader>

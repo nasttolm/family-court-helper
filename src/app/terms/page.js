@@ -130,7 +130,7 @@ export default function TermsPage() {
             <section className="mb-8">
               <h2 className="text-2xl font-semibold text-gray-900 mb-4">8. Data Retention and Deletion</h2>
               <p className="mb-4">To allow you to return and complete your form, your questionnaire data may be temporarily stored.</p>
-              <p className="mb-4">We automatically delete questionnaire responses after 7 days, unless you choose to save progress for longer (where applicable).</p>
+              <p className="mb-4">We automatically delete questionnaire responses after 30 days, unless you choose to save progress for longer (where applicable).</p>
               <p>Once deleted, your answers cannot be recovered.</p>
             </section>
 
