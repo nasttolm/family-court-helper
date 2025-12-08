@@ -281,24 +281,41 @@ REQUIREMENTS:
 5. Follow UK court document conventions
 
 Generate templates for these sections:
-- applicant: Applicant information paragraph
-- respondent: Other parent information paragraph
-- children: Children information (narrative about each child)
-- currentSituation: Current living arrangements paragraph
-- proposed: Proposed arrangements paragraph
-- safety: Safety concerns paragraph
+
+APPLICANT SECTION - Use these exact field names:
+- {{applicantName}}, {{applicantDOB}}, {{applicantAddress}}, {{applicantPhone}}, {{applicantEmail}}
+
+RESPONDENT SECTION - Use these exact field names for OTHER PARENT:
+- {{otherParentName}}, {{otherParentAddress}}, {{otherParentPhone}}, {{otherParentEmail}}
+
+CHILDREN SECTION - Use these exact field names:
+- {{childCount}}, {{childOrChildren}} (automatically: "child" or "children"), {{childrenList}}, {{childrenDetails}}
+- childrenDetails includes: school, SEND (special educational needs), health issues
+
+CURRENT SITUATION - Use these exact field names:
+- {{childOrChildren}}, {{currentLivingArrangementText}} (auto-formatted with proper verb), {{currentArrangementDetails}}, {{socialCareStatement}} (auto-formatted)
+
+PROPOSED ARRANGEMENTS - Use these exact field names:
+- {{childOrChildren}}, {{proposedLivingArrangementText}} (auto-formatted with proper verb), {{proposedArrangementDetails}}, {{proposedContactSchedule}}, {{proposedHolidayArrangements}}
+
+SAFETY CONCERNS - Use this computed field:
+- {{safetyConcernsStatement}} (automatically formatted from form data)
 
 Return ONLY valid JSON in this format:
 {
   "applicant": "template text with {{placeholders}}",
-  "respondent": "template text",
-  "children": "template text",
-  "currentSituation": "template text",
-  "proposed": "template text",
-  "safety": "template text"
+  "respondent": "template text with {{placeholders}}",
+  "children": "template text with {{placeholders}}",
+  "currentSituation": "template text with {{placeholders}}",
+  "proposed": "template text with {{placeholders}}",
+  "safety": "{{safetyConcernsStatement}}"
 }
 
-CRITICAL: Use ONLY field names from the form structure. Do NOT invent field names.`
+CRITICAL: Use ONLY the field names listed above. Do NOT invent field names. For example:
+- Use {{otherParentName}} NOT {{respondentName}}
+- Use {{currentArrangementDetails}} NOT {{currentArrangements}}
+- Use {{proposedArrangementDetails}} NOT {{proposedArrangements}}
+- Use {{currentLivingArrangementText}} NOT {{currentLivingArrangement}} (the Text version includes proper grammar)`
 
     // AI models removed - using static template for now
     // Will add Phi-3-mini after verification
@@ -326,15 +343,15 @@ CRITICAL: Use ONLY field names from the form structure. Do NOT invent field name
  */
 function generateStaticTemplate(formConfig) {
   return {
-    applicant: "I, {{applicantName}}, am the applicant in this matter. I reside at {{applicantAddress}} and can be contacted at {{applicantPhone}}. My date of birth is {{applicantDOB}}.",
+    applicant: "I, {{applicantName}}, am the applicant in this matter. My date of birth is {{applicantDOB}}. I reside at {{applicantAddress}}. I can be contacted by telephone at {{applicantPhone}} or by email at {{applicantEmail}}.",
 
-    respondent: "The respondent in this matter is {{respondentName}}, who resides at {{respondentAddress}}. Their contact number is {{respondentPhone}}.",
+    respondent: "The respondent in this matter is {{otherParentName}}, who resides at {{otherParentAddress}}. The respondent can be contacted by telephone at {{otherParentPhone}} or by email at {{otherParentEmail}}.",
 
-    children: "This application concerns {{childCount}} child(ren): {{childrenList}}. The child(ren) currently reside with {{currentLivingWith}}.",
+    children: "This application concerns {{childCount}} {{childOrChildren}}: {{childrenList}}. {{childrenDetails}}",
 
-    currentSituation: "The current living arrangements are as follows: {{currentArrangements}}. The child(ren) spend time with the other parent {{contactFrequency}}.",
+    currentSituation: "The {{childOrChildren}} currently {{currentLivingArrangementText}}. {{currentArrangementDetails}} {{socialCareStatement}}",
 
-    proposed: "I propose the following arrangements for the child(ren): {{proposedArrangements}}. This arrangement is in the best interests of the child(ren) because {{reasonsForProposal}}.",
+    proposed: "I propose that the {{childOrChildren}} should {{proposedLivingArrangementText}}. {{proposedArrangementDetails}} Regarding contact with the other parent: {{proposedContactSchedule}} For holidays and special occasions: {{proposedHolidayArrangements}}",
 
     safety: "{{safetyConcernsStatement}}"
   }

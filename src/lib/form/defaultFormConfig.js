@@ -159,7 +159,7 @@ export const DEFAULT_FORM_CONFIG = {
           choices: [
             "With me",
             "With the other parent",
-            "Split between both parents",
+            "Spend time between both parents",
             "With other family members",
             "Other"
           ]
@@ -203,7 +203,7 @@ export const DEFAULT_FORM_CONFIG = {
           choices: [
             "With me",
             "With the other parent",
-            "Split between both parents",
+            "Spend time between both parents",
             "Other"
           ]
         },

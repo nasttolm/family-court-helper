@@ -80,8 +80,29 @@ function getFieldValue(fieldName, data) {
     return data.children?.length || 0
   }
 
+  if (fieldName === 'childOrChildren') {
+    const count = data.children?.length || 0
+    return count === 1 ? 'child' : 'children'
+  }
+
   if (fieldName === 'childrenList') {
     return formatChildrenList(data.children || [])
+  }
+
+  if (fieldName === 'childrenDetails') {
+    return formatChildrenDetails(data.children || [])
+  }
+
+  if (fieldName === 'currentLivingArrangementText') {
+    return formatLivingArrangement(data.currentLivingArrangement)
+  }
+
+  if (fieldName === 'proposedLivingArrangementText') {
+    return formatLivingArrangement(data.proposedLivingArrangement)
+  }
+
+  if (fieldName === 'socialCareStatement') {
+    return formatSocialCareStatement(data)
   }
 
   if (fieldName === 'safetyConcernsStatement') {
@@ -144,6 +165,68 @@ function formatChildrenList(children) {
 
     return parts.join(', ')
   }).join('; ')
+}
+
+/**
+ * Format detailed children information for narrative
+ */
+function formatChildrenDetails(children) {
+  if (!children || children.length === 0) {
+    return ''
+  }
+
+  return children.map((child, index) => {
+    const details = []
+
+    // School information
+    if (child.childSchool) {
+      details.push(`${child.childName || 'The child'} attends ${child.childSchool}.`)
+    }
+
+    // SEND information
+    if (child.childHasSEND && child.childSENDDetails) {
+      details.push(`${child.childName || 'The child'} has special educational needs or disabilities: ${child.childSENDDetails}`)
+    }
+
+    // Health information
+    if (child.childHealthIssues && child.childHealthDetails) {
+      details.push(`${child.childName || 'The child'} has health issues: ${child.childHealthDetails}`)
+    }
+
+    return details.join(' ')
+  }).filter(detail => detail).join(' ')
+}
+
+/**
+ * Format living arrangement with proper verb
+ */
+function formatLivingArrangement(arrangement) {
+  if (!arrangement) return ''
+
+  // "Spend time between both parents" already has a verb
+  if (arrangement === 'Spend time between both parents') {
+    return 'spend time between both parents'
+  }
+
+  // Other options need "live" verb
+  return 'live ' + arrangement.toLowerCase()
+}
+
+/**
+ * Format social care involvement statement
+ */
+function formatSocialCareStatement(data) {
+  if (!data.socialCareInvolvement) {
+    return 'Social care has not been involved with the family.'
+  }
+
+  let statement = 'Social care has been involved with the family.'
+
+  if (data.socialCareDetails) {
+    statement += ` ${data.socialCareDetails}`
+  }
+
+  return statement
 }
 
 /**
